@@ -1,0 +1,8 @@
+Feature,Chi-Square Statistic,P-Value,Significant?
+trafficway_type,1523.26,2.0089378625684196e-295,Yes
+traffic_control_device,398.33,1.0166695683040851e-63,Yes
+lighting_condition,309.5,3.902538045279671e-62,Yes
+roadway_surface_cond,206.26,7.95869926887561e-39,Yes
+weather_condition,142.33,1.8260151196189844e-20,Yes
+road_defect,59.56,4.385909328495162e-09,Yes
+alignment,23.54,0.008925662565852697,Yes
