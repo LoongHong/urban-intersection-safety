@@ -1,4 +1,5 @@
 Feature,Chi-Square Statistic,P-Value,Significant?
+first_crash_type,27787.07,0.0,Yes
 trafficway_type,1516.65,1.199788220141736e-295,Yes
 traffic_control_device,398.78,8.265326574419157e-64,Yes
 lighting_condition,309.18,4.5669585884182395e-62,Yes
