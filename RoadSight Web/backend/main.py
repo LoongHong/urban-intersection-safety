@@ -1,7 +1,6 @@
 import os
-import numpy as np
 import joblib
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from schemas import PredictRequest, PredictResponse
 
