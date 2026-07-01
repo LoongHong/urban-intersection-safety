@@ -6,7 +6,7 @@
 
 ## Context
 
-RoadSight is a React web application built on top of a completed FYP machine-learning pipeline that classifies traffic accident risk (binary: Low Risk / At Risk) for intersection-related crashes in Chicago. The app is intended as an **FYP presentation demo** — polished enough to impress examiners and demonstrate end-to-end system integration.
+RoadSight is a React web application built on top of a completed FYP machine-learning pipeline that classifies traffic accident risk (binary: Low Risk / At Risk) for intersection-related crashes. The app is intended as an **FYP presentation demo** — polished enough to impress examiners and demonstrate end-to-end system integration.
 
 The ML pipeline already exists:
 - 3 trained, serialised models: `model_lightgbm.pkl` (348 KB), `model_xgboost.pkl` (340 KB), `model_gradient_boosting.pkl` (475 KB)
@@ -57,7 +57,7 @@ Purpose: Show what the underlying data looks like — EDA at a glance.
 **Stat bar (top):**
 - Total crashes analysed: 163,676
 - At Risk rate: 27.1% (44,361 crashes)
-- Models evaluated: 9
+- Total Injuries: 80,105
 
 **EDA charts (hardcoded JSON from notebook outputs):**
 1. Accidents by Hour of Day — bar chart (0–23)
@@ -67,7 +67,6 @@ Purpose: Show what the underlying data looks like — EDA at a glance.
 5. Top 10 Weather Conditions — horizontal bar
 6. Lighting Conditions — horizontal bar
 7. Most Severe Injury distribution — horizontal bar
-8. Class imbalance — donut chart (Low Risk 72.9% / At Risk 27.1%)
 
 All chart data lives in `frontend/src/data/chartData.js` (static, pre-populated from notebook outputs).
 
