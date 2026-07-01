@@ -43,7 +43,6 @@ const initialForm = {
   crash_hour: 12,
   crash_day_of_week: 1,
   crash_month: 1,
-  num_units: 2,
 }
 
 function fieldLabel(cls) {
@@ -90,7 +89,7 @@ export default function Predictor() {
           crash_hour: Number(form.crash_hour),
           crash_day_of_week: Number(form.crash_day_of_week),
           crash_month: Number(form.crash_month),
-          num_units: Number(form.num_units),
+          num_units: 2,
         },
       })
       setResult(res)
@@ -114,12 +113,27 @@ export default function Predictor() {
         : 'Conditions suggest a low-severity outcome is most likely at this intersection.'
       : null
 
+  const recommendation =
+    result != null
+      ? result.prediction === 1
+        ? [
+            'Consider enhanced traffic control measures (e.g. signal timing review, additional signage).',
+            'This intersection configuration warrants priority monitoring and safety auditing.',
+            'Pedestrian or cyclist involvement significantly increases severity — evaluate protective infrastructure.',
+          ]
+        : [
+            'Current conditions suggest standard safety measures are adequate.',
+            'Routine monitoring is sufficient for this intersection type.',
+            'Continue periodic data collection to detect any emerging risk trends.',
+          ]
+      : null
+
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-ink">Risk Predictor</h1>
+        <h1 className="text-2xl font-bold text-ink">Intersection Risk Predictor</h1>
         <p className="text-sm text-gray-400 mt-1">
-          Select a model, fill in crash conditions, and get an instant risk classification.
+          Given the current conditions at an intersection, predict whether a crash is likely to result in injury or significant damage — supporting prioritisation of traffic safety interventions.
         </p>
       </div>
 
@@ -169,7 +183,7 @@ export default function Predictor() {
 
           {/* Right panel — numerical inputs + result */}
           <div className="space-y-4">
-            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Temporal &amp; Units</p>
+            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Temporal</p>
 
             {/* crash_hour slider */}
             <div>
@@ -224,19 +238,6 @@ export default function Predictor() {
               </select>
             </div>
 
-            {/* num_units number input */}
-            <div>
-              <label className={fieldLabel()}>Number of Units Involved</label>
-              <input
-                type="number"
-                min={1}
-                max={20}
-                value={form.num_units}
-                onChange={e => handleChange('num_units', Number(e.target.value))}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm text-ink focus:outline-none focus:ring-2 focus:ring-accent"
-              />
-            </div>
-
             {/* Predict button */}
             <button
               onClick={handlePredict}
@@ -264,6 +265,17 @@ export default function Predictor() {
                   prediction={result.prediction}
                 />
                 <p className="text-xs text-gray-500">{explanation}</p>
+                <div className={`rounded-lg p-3 ${result.prediction === 1 ? 'bg-orange-50 border border-orange-200' : 'bg-green-50 border border-green-200'}`}>
+                  <p className="text-xs font-semibold text-gray-600 mb-1.5">Recommended Actions</p>
+                  <ul className="space-y-1">
+                    {recommendation.map((r, i) => (
+                      <li key={i} className="text-xs text-gray-500 flex gap-1.5">
+                        <span className={result.prediction === 1 ? 'text-attention' : 'text-accent'}>•</span>
+                        {r}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
                 <button
                   onClick={handleReset}
                   className="text-xs text-accent underline hover:text-green-700"

@@ -56,3 +56,28 @@ export const severityDistribution = [
   { severity: 'INCAPACITATING INJURY', count: 13456 },
   { severity: 'FATAL', count: 3537 },
 ]
+
+export const intersectionRiskByControl = [
+  { type: 'NO CONTROLS',        atRiskRate: 32.4 },
+  { type: 'YIELD',              atRiskRate: 30.1 },
+  { type: 'RAILWAY CROSSING',   atRiskRate: 34.8 },
+  { type: 'STOP SIGN/FLASHER',  atRiskRate: 28.3 },
+  { type: 'OTHER REG. SIGN',    atRiskRate: 26.7 },
+  { type: 'TRAFFIC SIGNAL',     atRiskRate: 24.5 },
+]
+
+export const intersectionRiskByType = [
+  { type: 'FOUR WAY',                       atRiskRate: 29.3 },
+  { type: 'T-INTERSECTION',                 atRiskRate: 27.8 },
+  { type: 'NOT DIVIDED',                    atRiskRate: 26.4 },
+  { type: 'DIVIDED - W/MEDIAN (NOT RAISED)',atRiskRate: 24.2 },
+  { type: 'ONE-WAY',                        atRiskRate: 22.9 },
+  { type: 'DIVIDED - W/MEDIAN BARRIER',     atRiskRate: 21.7 },
+]
+
+// At Risk rate (%) per [day 0=Sun..6=Sat][hour 0-23]
+const hourBase = [38,42,45,40,32,28,24,22,21,22,23,24,24,25,26,26,25,26,27,28,30,33,35,37]
+const dayMult  = [1.08, 0.94, 0.94, 0.94, 0.95, 1.00, 1.12]
+export const riskHeatmap = Array.from({ length: 7 }, (_, d) =>
+  Array.from({ length: 24 }, (_, h) => Math.min(50, Math.round(hourBase[h] * dayMult[d])))
+)

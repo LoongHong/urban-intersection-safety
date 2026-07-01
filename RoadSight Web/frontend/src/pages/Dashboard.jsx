@@ -1,14 +1,18 @@
 import StatCard from '../components/StatCard'
 import EDABarChart from '../components/charts/EDABarChart'
+import RiskHeatmap from '../components/charts/RiskHeatmap'
 import {
   crashByHour, crashByDay, crashByMonth,
   damageCategories, weatherConditions, lightingConditions, severityDistribution,
+  intersectionRiskByControl, intersectionRiskByType,
 } from '../data/chartData'
 
-function ChartCard({ title, children }) {
+function ChartCard({ title, subtitle, children }) {
   return (
     <div className="bg-white rounded-card p-5 shadow-sm border border-gray-100">
-      <h3 className="text-sm font-semibold text-ink mb-4">{title}</h3>
+      <h3 className="text-sm font-semibold text-ink">{title}</h3>
+      {subtitle && <p className="text-xs text-gray-400 mt-0.5 mb-3">{subtitle}</p>}
+      {!subtitle && <div className="mb-4" />}
       {children}
     </div>
   )
@@ -29,31 +33,76 @@ export default function Dashboard() {
         <StatCard label="Total Injuries" value="80,105" sub="Across all severity levels" />
       </div>
 
-      {/* EDA charts grid */}
-      <div className="grid grid-cols-3 gap-4">
-        <ChartCard title="Accidents by Hour of Day">
-          <EDABarChart data={crashByHour} xKey="hour" />
-        </ChartCard>
-        <ChartCard title="Accidents by Day of Week">
-          <EDABarChart data={crashByDay} xKey="day" />
-        </ChartCard>
-        <ChartCard title="Accidents by Month">
-          <EDABarChart data={crashByMonth} xKey="month" />
-        </ChartCard>
-        <ChartCard title="Damage Categories">
-          <EDABarChart data={damageCategories} xKey="category" />
-        </ChartCard>
-        <ChartCard title="Top 10 Weather Conditions">
-          <EDABarChart data={weatherConditions} xKey="condition" horizontal />
-        </ChartCard>
-        <ChartCard title="Lighting Conditions">
-          <EDABarChart data={lightingConditions} xKey="condition" horizontal />
-        </ChartCard>
+      {/* Key finding banner */}
+      <div className="bg-white rounded-card border border-gray-100 shadow-sm p-5">
+        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">Key Finding — Most Significant Risk Factor</p>
+        <div className="flex items-start gap-6">
+          <div className="flex-1">
+            <p className="text-sm font-semibold text-ink">First Crash Type dominates intersection risk (χ² = 26,251)</p>
+            <p className="text-xs text-gray-500 mt-1">
+              Chi-square analysis across all 8 features shows crash type explains far more variance in outcome severity than
+              weather, lighting, or road surface combined. Pedestrian and cyclist crashes carry the highest At Risk rate.
+            </p>
+          </div>
+          <div className="flex gap-3 shrink-0">
+            {[
+              { label: 'First Crash Type', chi: '26,251', highlight: true },
+              { label: 'Traffic Control',  chi: '14,832', highlight: false },
+              { label: 'Trafficway Type',  chi: '12,456', highlight: false },
+              { label: 'Weather',          chi: '6,723',  highlight: false },
+            ].map(f => (
+              <div key={f.label} className={`rounded-lg px-3 py-2 text-center ${f.highlight ? 'bg-green-50 border border-accent' : 'bg-gray-50 border border-gray-100'}`}>
+                <p className={`text-lg font-bold ${f.highlight ? 'text-accent' : 'text-ink'}`}>{f.chi}</p>
+                <p className="text-xs text-gray-400 mt-0.5">{f.label}</p>
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
 
-      <div className="grid grid-cols-1 gap-4">
-        <ChartCard title="Most Severe Injury Distribution">
-          <EDABarChart data={severityDistribution} xKey="severity" horizontal color="#f97316" />
+      {/* Intersection risk section */}
+      <div>
+        <h2 className="text-base font-semibold text-ink mb-3">Intersection Risk by Configuration</h2>
+        <div className="grid grid-cols-2 gap-4">
+          <ChartCard title="At Risk Rate by Traffic Control Device" subtitle="% of crashes resulting in injury or major damage">
+            <EDABarChart data={intersectionRiskByControl} xKey="type" yKey="atRiskRate" color="#f97316" horizontal unit="%" />
+          </ChartCard>
+          <ChartCard title="At Risk Rate by Trafficway Type" subtitle="% of crashes resulting in injury or major damage">
+            <EDABarChart data={intersectionRiskByType} xKey="type" yKey="atRiskRate" color="#f97316" horizontal unit="%" />
+          </ChartCard>
+        </div>
+      </div>
+
+      {/* Risk heatmap */}
+      <ChartCard title="At Risk Rate by Day & Hour" subtitle="Crash severity pattern across the week — hover a cell for the exact rate">
+        <RiskHeatmap />
+      </ChartCard>
+
+      {/* EDA charts grid */}
+      <div>
+        <h2 className="text-base font-semibold text-ink mb-3">Crash Volume Distributions</h2>
+        <div className="grid grid-cols-3 gap-4">
+          <ChartCard title="Accidents by Hour of Day">
+            <EDABarChart data={crashByHour} xKey="hour" />
+          </ChartCard>
+          <ChartCard title="Accidents by Day of Week">
+            <EDABarChart data={crashByDay} xKey="day" />
+          </ChartCard>
+          <ChartCard title="Accidents by Month">
+            <EDABarChart data={crashByMonth} xKey="month" />
+          </ChartCard>
+          <ChartCard title="Damage Categories">
+            <EDABarChart data={damageCategories} xKey="category" />
+          </ChartCard>
+          <ChartCard title="Lighting Conditions">
+            <EDABarChart data={lightingConditions} xKey="condition" horizontal />
+          </ChartCard>
+          <ChartCard title="Most Severe Injury Distribution">
+            <EDABarChart data={severityDistribution} xKey="severity" horizontal color="#f97316" />
+          </ChartCard>
+        </div>
+        <ChartCard title="Top 10 Weather Conditions">
+          <EDABarChart data={weatherConditions} xKey="condition" horizontal />
         </ChartCard>
       </div>
     </div>
