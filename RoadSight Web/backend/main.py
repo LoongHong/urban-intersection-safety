@@ -1,5 +1,6 @@
 import os
 import joblib
+import pandas as pd
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from schemas import PredictRequest, PredictResponse
@@ -16,6 +17,12 @@ app.add_middleware(
 MODELS_DIR = os.path.join(os.path.dirname(__file__), "models")
 MODELS = {}
 PREPROCESSOR = None
+FEATURE_NAMES = [
+    'weather_condition', 'lighting_condition', 'roadway_surface_cond',
+    'road_defect', 'alignment', 'traffic_control_device',
+    'trafficway_type', 'first_crash_type',
+    'crash_hour', 'crash_day_of_week', 'crash_month', 'num_units',
+]
 
 
 @app.on_event("startup")
@@ -35,12 +42,12 @@ def health():
 @app.post("/predict", response_model=PredictResponse)
 def predict(req: PredictRequest):
     f = req.features
-    row = [[
+    row = pd.DataFrame([[
         f.weather_condition, f.lighting_condition, f.roadway_surface_cond,
         f.road_defect, f.alignment, f.traffic_control_device,
         f.trafficway_type, f.first_crash_type,
-        f.crash_hour, f.crash_day_of_week, f.crash_month, f.num_units
-    ]]
+        f.crash_hour, f.crash_day_of_week, f.crash_month, f.num_units,
+    ]], columns=FEATURE_NAMES)
     X = PREPROCESSOR.transform(row)
     model = MODELS[req.model]
     pred = int(model.predict(X)[0])

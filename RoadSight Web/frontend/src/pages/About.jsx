@@ -1,5 +1,5 @@
 const STACK = [
-  'React 18', 'FastAPI', 'scikit-learn', 'XGBoost', 'LightGBM',
+  'React 19', 'FastAPI', 'scikit-learn', 'XGBoost', 'LightGBM',
   'Python 3.11', 'Tailwind CSS', 'Recharts', 'Vite',
 ]
 

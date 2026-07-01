@@ -28,7 +28,7 @@ export const featureOptions = {
   trafficway_type: [
     'NOT DIVIDED', 'DIVIDED - W/MEDIAN BARRIER', 'DIVIDED - W/MEDIAN (NOT RAISED)',
     'ONE-WAY', 'FOUR WAY', 'T-INTERSECTION', 'Y-INTERSECTION',
-    'L-INTERSECTION', 'OTHER', 'UNKNOWN',
+    'L-INTERSECTION', 'OTHER',
   ],
   first_crash_type: [
     'REAR END', 'TURNING', 'ANGLE', 'SIDESWIPE SAME DIRECTION',
