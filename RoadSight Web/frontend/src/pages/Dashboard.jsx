@@ -1,5 +1,7 @@
 import StatCard from '../components/StatCard'
 import EDABarChart from '../components/charts/EDABarChart'
+import EDAAreaChart from '../components/charts/EDAAreaChart'
+import EDADonutChart from '../components/charts/EDADonutChart'
 import RiskHeatmap from '../components/charts/RiskHeatmap'
 import {
   crashByHour, crashByDay, crashByMonth,
@@ -9,7 +11,7 @@ import {
 
 function ChartCard({ title, subtitle, children }) {
   return (
-    <div className="bg-white rounded-card p-5 shadow-sm border border-gray-100">
+    <div className="bg-white rounded-card p-5 shadow-sm border border-gray-100 transition-all duration-200 hover:shadow-md hover:-translate-y-0.5">
       <h3 className="text-sm font-semibold text-ink">{title}</h3>
       {subtitle && <p className="text-xs text-gray-400 mt-0.5 mb-3">{subtitle}</p>}
       {!subtitle && <div className="mb-4" />}
@@ -20,10 +22,10 @@ function ChartCard({ title, subtitle, children }) {
 
 export default function Dashboard() {
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 animate-fade-in-up">
       <div>
         <h1 className="text-2xl font-bold text-ink">Traffic Accident Dashboard</h1>
-        <p className="text-sm text-gray-400 mt-1">Intersection-related crashes in Chicago — 163,676 records analysed</p>
+        <p className="text-sm text-gray-400 mt-1">Intersection-related crashes — 163,676 records analysed</p>
       </div>
 
       {/* Stat bar */}
@@ -79,30 +81,30 @@ export default function Dashboard() {
       </ChartCard>
 
       {/* EDA charts grid */}
-      <div>
-        <h2 className="text-base font-semibold text-ink mb-3">Crash Volume Distributions</h2>
+      <div className="space-y-4">
+        <h2 className="text-base font-semibold text-ink">Crash Volume Distributions</h2>
         <div className="grid grid-cols-3 gap-4">
           <ChartCard title="Accidents by Hour of Day">
-            <EDABarChart data={crashByHour} xKey="hour" />
+            <EDAAreaChart data={crashByHour} xKey="hour" color="#3b82f6" />
           </ChartCard>
           <ChartCard title="Accidents by Day of Week">
-            <EDABarChart data={crashByDay} xKey="day" />
+            <EDAAreaChart data={crashByDay} xKey="day" color="#a855f7" />
           </ChartCard>
           <ChartCard title="Accidents by Month">
-            <EDABarChart data={crashByMonth} xKey="month" />
+            <EDAAreaChart data={crashByMonth} xKey="month" color="#14b8a6" />
           </ChartCard>
           <ChartCard title="Damage Categories">
-            <EDABarChart data={damageCategories} xKey="category" />
+            <EDADonutChart data={damageCategories} nameKey="category" />
           </ChartCard>
           <ChartCard title="Lighting Conditions">
-            <EDABarChart data={lightingConditions} xKey="condition" horizontal />
+            <EDADonutChart data={lightingConditions} nameKey="condition" />
           </ChartCard>
           <ChartCard title="Most Severe Injury Distribution">
-            <EDABarChart data={severityDistribution} xKey="severity" horizontal color="#f97316" />
+            <EDADonutChart data={severityDistribution} nameKey="severity" />
           </ChartCard>
         </div>
         <ChartCard title="Top 10 Weather Conditions">
-          <EDABarChart data={weatherConditions} xKey="condition" horizontal />
+          <EDABarChart data={weatherConditions} xKey="condition" horizontal color="#eab308" showPercent />
         </ChartCard>
       </div>
     </div>

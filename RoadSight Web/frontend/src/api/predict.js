@@ -6,3 +6,8 @@ export async function predictRisk({ model, features }) {
   const { data } = await axios.post(`${BASE}/predict`, { model, features })
   return data
 }
+
+export async function predictAllModels(features) {
+  const { data } = await axios.post(`${BASE}/predict/all`, features)
+  return data.results
+}

@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { featureOptions } from '../data/featureOptions'
-import { predictRisk } from '../api/predict'
+import { predictRisk, predictAllModels } from '../api/predict'
 import RiskBadge from '../components/RiskBadge'
 import ConfidenceBar from '../components/ConfidenceBar'
 
@@ -60,13 +60,33 @@ export default function Predictor() {
   const [form, setForm] = useState(initialForm)
   const [result, setResult] = useState(null)
   const [loading, setLoading] = useState(false)
+  const [compareResults, setCompareResults] = useState(null)
+  const [compareLoading, setCompareLoading] = useState(false)
   const [error, setError] = useState(null)
 
   const allCategoricalFilled = CATEGORICAL_FIELDS.every(({ key }) => form[key] !== '')
 
+  function buildFeatures() {
+    return {
+      weather_condition: form.weather_condition,
+      lighting_condition: form.lighting_condition,
+      roadway_surface_cond: form.roadway_surface_cond,
+      road_defect: form.road_defect,
+      alignment: form.alignment,
+      traffic_control_device: form.traffic_control_device,
+      trafficway_type: form.trafficway_type,
+      first_crash_type: form.first_crash_type,
+      crash_hour: Number(form.crash_hour),
+      crash_day_of_week: Number(form.crash_day_of_week),
+      crash_month: Number(form.crash_month),
+      num_units: 2,
+    }
+  }
+
   function handleChange(key, value) {
     setForm(prev => ({ ...prev, [key]: value }))
     setResult(null)
+    setCompareResults(null)
     setError(null)
   }
 
@@ -74,24 +94,9 @@ export default function Predictor() {
     setLoading(true)
     setError(null)
     setResult(null)
+    setCompareResults(null)
     try {
-      const res = await predictRisk({
-        model: selectedModel,
-        features: {
-          weather_condition: form.weather_condition,
-          lighting_condition: form.lighting_condition,
-          roadway_surface_cond: form.roadway_surface_cond,
-          road_defect: form.road_defect,
-          alignment: form.alignment,
-          traffic_control_device: form.traffic_control_device,
-          trafficway_type: form.trafficway_type,
-          first_crash_type: form.first_crash_type,
-          crash_hour: Number(form.crash_hour),
-          crash_day_of_week: Number(form.crash_day_of_week),
-          crash_month: Number(form.crash_month),
-          num_units: 2,
-        },
-      })
+      const res = await predictRisk({ model: selectedModel, features: buildFeatures() })
       setResult(res)
     } catch (e) {
       setError(e?.response?.data?.detail || e.message || 'Backend call failed.')
@@ -100,9 +105,25 @@ export default function Predictor() {
     }
   }
 
+  async function handleCompareAll() {
+    setCompareLoading(true)
+    setError(null)
+    setResult(null)
+    setCompareResults(null)
+    try {
+      const res = await predictAllModels(buildFeatures())
+      setCompareResults(res)
+    } catch (e) {
+      setError(e?.response?.data?.detail || e.message || 'Backend call failed.')
+    } finally {
+      setCompareLoading(false)
+    }
+  }
+
   function handleReset() {
     setForm(initialForm)
     setResult(null)
+    setCompareResults(null)
     setError(null)
   }
 
@@ -128,8 +149,19 @@ export default function Predictor() {
           ]
       : null
 
+  const compareSummary =
+    compareResults != null
+      ? (() => {
+          const total = compareResults.length
+          const atRiskCount = compareResults.filter(r => r.prediction === 1).length
+          const unanimous = atRiskCount === 0 || atRiskCount === total
+          const majorityLabel = atRiskCount * 2 >= total ? 'At Risk' : 'Low Risk'
+          return { total, atRiskCount, unanimous, majorityLabel }
+        })()
+      : null
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 animate-fade-in-up">
       <div>
         <h1 className="text-2xl font-bold text-ink">Intersection Risk Predictor</h1>
         <p className="text-sm text-gray-400 mt-1">
@@ -144,7 +176,7 @@ export default function Predictor() {
           {MODELS.map(m => (
             <button
               key={m.id}
-              onClick={() => { setSelectedModel(m.id); setResult(null); setError(null) }}
+              onClick={() => { setSelectedModel(m.id); setResult(null); setCompareResults(null); setError(null) }}
               className={`rounded-card border p-4 text-left transition-all ${
                 selectedModel === m.id
                   ? 'border-accent bg-green-50'
@@ -243,12 +275,19 @@ export default function Predictor() {
               onClick={handlePredict}
               disabled={!allCategoricalFilled || loading}
               className={`w-full py-2.5 rounded-lg text-sm font-semibold transition-all ${
-                allCategoricalFilled && !loading
-                  ? 'bg-accent text-white hover:bg-green-600'
-                  : 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                loading
+                  ? 'bg-accent/70 text-white cursor-wait'
+                  : allCategoricalFilled
+                    ? 'bg-accent text-white hover:bg-green-600'
+                    : 'bg-gray-100 text-gray-400 cursor-not-allowed'
               }`}
             >
-              {loading ? 'Predicting…' : 'Predict Risk'}
+              {loading
+                ? <span className="inline-flex items-center justify-center gap-2">
+                    <span className="w-3.5 h-3.5 border-2 border-white/40 border-t-white rounded-full animate-spin" />
+                    Predicting…
+                  </span>
+                : 'Predict Risk'}
             </button>
 
             {/* Error */}
@@ -258,7 +297,7 @@ export default function Predictor() {
 
             {/* Result card */}
             {result != null && (
-              <div className="rounded-card border border-gray-100 bg-gray-50 p-4 space-y-3">
+              <div className="rounded-card border border-gray-100 bg-gray-50 p-4 space-y-3 animate-fade-in-up">
                 <RiskBadge prediction={result.prediction} />
                 <ConfidenceBar
                   probability={result.probability}
@@ -286,6 +325,62 @@ export default function Predictor() {
             )}
           </div>
         </div>
+      </div>
+
+      {/* Compare all models */}
+      <div>
+        <div className="flex items-center justify-between mb-3">
+          <div>
+            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Compare All Models</p>
+            <p className="text-xs text-gray-400 mt-0.5">Run the current input through every model at once to check for agreement</p>
+          </div>
+          <button
+            onClick={handleCompareAll}
+            disabled={!allCategoricalFilled || compareLoading}
+            className={`px-5 py-2.5 rounded-lg text-sm font-semibold transition-all border ${
+              compareLoading
+                ? 'border-accent text-accent/70 cursor-wait'
+                : allCategoricalFilled
+                  ? 'border-accent text-accent hover:bg-green-50'
+                  : 'border-gray-200 text-gray-400 cursor-not-allowed'
+            }`}
+          >
+            {compareLoading
+              ? <span className="inline-flex items-center justify-center gap-2">
+                  <span className="w-3.5 h-3.5 border-2 border-accent/30 border-t-accent rounded-full animate-spin" />
+                  Comparing…
+                </span>
+              : 'Compare All Models'}
+          </button>
+        </div>
+
+        {compareResults != null && (
+          <div className="space-y-4 animate-fade-in-up">
+            <div className={`rounded-card border p-4 text-sm font-semibold ${
+              compareSummary.unanimous
+                ? 'bg-green-50 border-accent text-ink'
+                : 'bg-orange-50 border-orange-200 text-ink'
+            }`}>
+              {compareSummary.unanimous
+                ? `${compareSummary.total}/${compareSummary.total} models agree: ${compareSummary.majorityLabel}`
+                : `Models disagree — ${compareSummary.atRiskCount} At Risk, ${compareSummary.total - compareSummary.atRiskCount} Low Risk`}
+            </div>
+            <div className="grid grid-cols-3 gap-4">
+              {compareResults.map(r => (
+                <div
+                  key={r.model}
+                  className="bg-white rounded-card border border-gray-100 p-4 space-y-3 transition-all duration-200 hover:shadow-md hover:-translate-y-0.5"
+                >
+                  <p className="text-sm font-semibold text-ink">
+                    {MODELS.find(m => m.id === r.model)?.label || r.model}
+                  </p>
+                  <RiskBadge prediction={r.prediction} />
+                  <ConfidenceBar probability={r.probability} prediction={r.prediction} />
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   )

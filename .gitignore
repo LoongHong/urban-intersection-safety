@@ -8,3 +8,6 @@ model_random_forest.pkl
 # Python cache
 __pycache__/
 *.pyc
+
+# Virtual environment
+.venv/

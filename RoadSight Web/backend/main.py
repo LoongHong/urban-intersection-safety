@@ -3,9 +3,10 @@ import joblib
 import pandas as pd
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from schemas import PredictRequest, PredictResponse
+from schemas import Features, PredictRequest, PredictResponse, ModelPrediction, PredictAllResponse
 
 app = FastAPI(title="RoadSight API")
+
 
 app.add_middleware(
     CORSMiddleware,
@@ -39,18 +40,36 @@ def health():
     return {"status": "ok"}
 
 
-@app.post("/predict", response_model=PredictResponse)
-def predict(req: PredictRequest):
-    f = req.features
-    row = pd.DataFrame([[
+def _features_to_row(f: Features) -> pd.DataFrame:
+    return pd.DataFrame([[
         f.weather_condition, f.lighting_condition, f.roadway_surface_cond,
         f.road_defect, f.alignment, f.traffic_control_device,
         f.trafficway_type, f.first_crash_type,
         f.crash_hour, f.crash_day_of_week, f.crash_month, f.num_units,
     ]], columns=FEATURE_NAMES)
-    X = PREPROCESSOR.transform(row)
-    model = MODELS[req.model]
+
+
+def _run_model(model, X):
     pred = int(model.predict(X)[0])
     prob = float(model.predict_proba(X)[0][pred])
     label = "At Risk" if pred == 1 else "Low Risk"
+    return pred, prob, label
+
+
+@app.post("/predict", response_model=PredictResponse)
+def predict(req: PredictRequest):
+    row = _features_to_row(req.features)
+    X = PREPROCESSOR.transform(row)
+    pred, prob, label = _run_model(MODELS[req.model], X)
     return PredictResponse(prediction=pred, probability=prob, label=label)
+
+
+@app.post("/predict/all", response_model=PredictAllResponse)
+def predict_all(features: Features):
+    row = _features_to_row(features)
+    X = PREPROCESSOR.transform(row)
+    results = []
+    for name, model in MODELS.items():
+        pred, prob, label = _run_model(model, X)
+        results.append(ModelPrediction(model=name, prediction=pred, probability=prob, label=label))
+    return PredictAllResponse(results=results)

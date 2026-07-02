@@ -1,6 +1,15 @@
+import { useEffect, useState } from 'react'
+
 export default function ConfidenceBar({ probability, prediction }) {
   const pct = Math.round(probability * 100)
   const color = prediction === 1 ? 'bg-attention' : 'bg-accent'
+  const [width, setWidth] = useState(0)
+
+  useEffect(() => {
+    const id = requestAnimationFrame(() => setWidth(pct))
+    return () => cancelAnimationFrame(id)
+  }, [pct])
+
   return (
     <div>
       <div className="flex justify-between text-xs text-gray-500 mb-1">
@@ -8,7 +17,10 @@ export default function ConfidenceBar({ probability, prediction }) {
         <span className="font-semibold text-ink">{pct}%</span>
       </div>
       <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
-        <div className={`h-full rounded-full ${color}`} style={{ width: `${pct}%` }} />
+        <div
+          className={`h-full rounded-full ${color} transition-all duration-700 ease-out`}
+          style={{ width: `${width}%` }}
+        />
       </div>
     </div>
   )

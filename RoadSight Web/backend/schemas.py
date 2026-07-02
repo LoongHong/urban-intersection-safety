@@ -26,3 +26,14 @@ class PredictResponse(BaseModel):
     prediction: int
     probability: float
     label: str
+
+
+class ModelPrediction(BaseModel):
+    model: str
+    prediction: int
+    probability: float
+    label: str
+
+
+class PredictAllResponse(BaseModel):
+    results: list[ModelPrediction]
